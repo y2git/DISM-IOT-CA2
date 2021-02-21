@@ -45,26 +45,27 @@
             });//end ajax
         }
 
-        function getNewData() {
+        function getNewData(){
             $("#status").html("Fetching data to plot graph...");
-
             jQuery.ajax({
-                url: "/api/getdata",
+                url: "/api/getdata" ,
                 type: 'POST',
-                success: function (ndata, textStatus, xhr) {
-                    console.log(ndata.chart_data.data)
+                error: function(jqXHR,textStatus, errorThrown ){
+                     console.log("Error while ajax:" + textStatus)
+                },
+                success: function(ndata, textStatus, xhr){ 
+                    //console.log(ndata)
+                    console.log(ndata.chart_data)
+                    //console.log("Data fetched! Now plotting graph!")
                     $("#status").html("Data fetched! Now plotting graph!");
-                    chartdata = ndata.chart_data.data
-                    linegraphdata = createDataTable(chartdata)
-                    tablegraphdata = createDataTable(chartdata.reverse())
-                    drawLineChart(linegraphdata)
-                    drawDataTable(tablegraphdata)
+                    chartdata = ndata.chart_data
+                    graphdata = createDataTable(chartdata)
+                    drawLineChart(graphdata)
+                    drawDataTable(graphdata)
                     $("#status").html("Graph plotted");
-                    console.log(ndata.lightnow)
-                    $("#lightval").html(ndata.lightnow)
                 }//end success
             });//end ajax
-        } //end getNewData
+          } //end getNewData
 
         function createDataTable(newdata) {
             graphdata = new google.visualization.DataTable();
@@ -74,7 +75,7 @@
                 datetime = newdata[i].datetimeinfo;
                 jsdatetime = new Date(Date.parse(datetime));
                 jstime = jsdatetime.toLocaleTimeString();
-                light = newdata[i].lightvalue;
+                light = parseInt(newdata[i].value);
                 graphdata.addRows([[jstime, light]]);
             }//end for
             return graphdata

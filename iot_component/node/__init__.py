@@ -4,7 +4,10 @@ def node(termlock, config):
     try:
         refreshrate = 30
         print(config["HOST"])
+        print(config["TELEBOT"])
         while True:
+            # Code here
+
             # Wait for termination command
             if termlock.acquire(timeout=refreshrate):
                 break

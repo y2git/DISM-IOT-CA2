@@ -92,7 +92,7 @@ def BellAlert():
     sensor_value = (1024*(1.0-mcp3008.value))
     sensor_value = round(sensor_value)
 
-    # Todo: Save Light Value and Datetime into MySQL database
+    # Todo: Save Light Value and Datetime into DB database
     try:
         host='localhost'; user='auser'; password='auseriot'; database='AssignmentIoT'
         sql = "INSERT INTO ButtonPress (datetimeinfo, lightvalue) VALUES (%s, %s)"
