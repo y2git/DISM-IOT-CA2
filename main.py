@@ -5,6 +5,9 @@ import configparser
 import sys
 from iot_component import node
 import multiprocessing
+from flask import Flask, render_template, jsonify, request, Response
+import gevent.monkey
+from gevent.pywsgi import WSGIServer
 
 # adc = MCP3008(channel=0)
 
@@ -43,7 +46,7 @@ def confparse():
         # Verify Section Keys
         if list(rpicfg["HOST"].keys()) != ["rootca", "certificate", "privatekey", "hostname", "rpi"]:
             raise configparser.ParsingError("RPICFG Section Key Error")
-        elif list(rpicfg["TELEBOT"].keys()) != ["buttok", "phoneid"]:
+        elif list(rpicfg["TELEBOT"].keys()) != ["bottok", "phoneid"]:
             raise configparser.ParsingError("RPICFG Section Key Error")
 
         # Set ConfigParser Object
@@ -86,7 +89,7 @@ def node_start():
     }
 
     N_TERMINATE.acquire(block=False)
-    NODE_P = multiprocessing.Process(target=node.node, name="IoT Node", daemon=True, args=(N_TERMINATE), kwargs=kwargs)
+    NODE_P = multiprocessing.Process(target=node.node, name="IoT Node", daemon=True, args=(N_TERMINATE,), kwargs=kwargs)
     NODE_P.start()
 
     if N_TERMINATE.acquire(timeout=5):
@@ -97,7 +100,7 @@ def node_stop():
     global NODE_P
     global N_TERMINATE
 
-    if not N_TERMINATE.aquire(block=False):
+    if not N_TERMINATE.acquire(block=False):
         print("Signal Node to Terminate")
         N_TERMINATE.release()
     else:
@@ -109,8 +112,19 @@ def node_stop():
     NODE_P.close()
     print("Node Terminated")
 
+app = Flask(__name__)
+
 def display_start():
-    pass
+    try:
+        print('Server waiting for requests')
+        http_server = WSGIServer(('0.0.0.0', 8001), app)
+        app.debug = True
+        http_server.serve_forever()
+    except:
+        print("Exception")
+        import sys
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])
 
 if __name__ == "__main__":
     confparse()
