@@ -40,8 +40,14 @@ This application is a smart doorbell with Response and “At Home” Time-Out fe
 ## 3.1 Software Requirements and installation
 Install via pip:
 - telepot
--	mysql-connector-python
--	gevent 
--	configparser
+- mysql-connector-python
+- gevent 
+- configparser
+- awscli
+- AWSIoTPythonSDK
+- botocore
+- boto3
+## 3.1
+
 
 
