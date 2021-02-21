@@ -45,3 +45,14 @@ Install via pip:
 - AWSIoTPythonSDK
 - botocore
 - boto3
+# 4. Running the Application
+*Note make sure all IOT Practicals regarding AWS has been completed first:
+
+1)	First connect the hardware, as shown in Section 2: Fritzing Diagram.
+2)	Set up a table called “ButtonPress” in DynamoDB.
+3)	Dump your AWSCerts under the folder DISM-IOT-CA2/RPIfolder/AWSCert/
+4)	Using an editor, change the details in host.cfg file located in DISM-IOT-CA2/RPIfolder/etc/ to your own details
+5)	Transfer the folders “RPIfolder” and “Webserver” to your RPI and your EC2 instance respectively.
+6)	On the RPI, run mainmain.py to start the Smart Doorbell device.
+7)	On the EC2 instance, run server.py to start the web application.
+
