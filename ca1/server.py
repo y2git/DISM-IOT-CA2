@@ -10,6 +10,25 @@ import decimal
 import gevent
 import gevent.monkey
 from gevent.pywsgi import WSGIServer
+from boto3.dynamodb.conditions import Key, Attr
+import boto3
+
+DYNAMODB = boto3.resource('dynamodb', region_name='us-east-1')
+TABLE = DYNAMODB.Table('ButtonPress')
+DYNAMODBCLI = boto3.client('dynamodb', region_name='us-east-1')
+
+def real_time():
+    startdate = '2021-02'
+    response = TABLE.query(
+        KeyConditionExpression=Key('id').eq('realtime')
+                               & Key('datetimeinfo').begins_with(startdate),
+        ScanIndexForward=False
+    )
+    items = response["Items"]
+    n = 1
+    data = items[:n]
+    if data:
+        return data[0]["value"]
 
 app = Flask(__name__)
 
@@ -17,8 +36,9 @@ app = Flask(__name__)
 def apidata_getdata():
     if request.method == 'POST':
         try:
-            data = {'chart_data': jsonc.data_to_json(dynamodb.get_data_from_dynamodb()), 
-             'title': "IOT Data"}
+            data = {'chart_data': jsonc.data_to_json(dynamodb.get_data_from_dynamodb()),
+                    'lightnow': real_time(),
+                    'title': "IOT Data"}
             print(data)
             return jsonify(data)
         except:
@@ -27,13 +47,15 @@ def apidata_getdata():
             print(sys.exc_info()[1])
 
 def TOenabled():
-    global AlarmTimeOut
-    AlarmTimeOut = 1
+    now = datetime.datetime.now().isoformat()
+    DYNAMODB.put_item(TableName='ButtonPress', Item={'id': {'S': 'TO'}, 'datetimeinfo': {'S': str(now)},
+                                                     'TOsetting': {'N': 1}})
     return "Enabled"
 
 def TOdisabled():
-    global AlarmTimeOut
-    AlarmTimeOut = 0
+    now = datetime.datetime.now().isoformat()
+    DYNAMODB.put_item(TableName='ButtonPress', Item={'id': {'S': 'TO'}, 'datetimeinfo': {'S': str(now)},
+                                                     'TOsetting': {'N': 0}})
     return "Disabled"
 
 @app.route("/writeTO/<status>")
@@ -44,19 +66,24 @@ def writePin(status):
         resresult = TOdisabled()
     return resresult
 
-@app.route("/testRun")
-def testRun():
-    BellAlert()
-    return "Completed"
-
 @app.route("/api/getTO", methods = ['POST', 'GET'])
 def apidata_getTO():
     if request.method == 'POST':
-        #if AlarmTimeOut == 1:
-            #data = {'TOsetting': 'Enabled'}
-        #else:
-        data = {'TOsetting': 'Disabled'}
-        return jsonify(data)
+        startdate = '2021-02'
+        response = TABLE.query(
+            KeyConditionExpression=Key('id').eq('TO')
+                                   & Key('datetimeinfo').begins_with(startdate),
+            ScanIndexForward=False
+        )
+
+        items = response["items"]
+        n = 1
+        data = items[:n]
+        if not data or int(data[0]["TOsetting"]) == 1:
+            output = {'TOsetting': 'Enabled'}
+        else:
+            output = {'TOsetting': 'Disabled'}
+        return jsonify(output)
 
 @app.route("/")
 def chartsimple():
